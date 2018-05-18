@@ -1,5 +1,6 @@
 # -*- codeing:utf-8 -*-
 import bitmex,time
+#import bitmex_swaggerpy.bitmex,time
 import pandas as pd
 from sqlalchemy import create_engine 
 from datetime import datetime,timedelta
@@ -18,7 +19,7 @@ while(1):
     df=pd.DataFrame(t[0])
     df['timestamp'] = df['timestamp'].apply(lambda x: pd.to_datetime(str(x)))
     df = df.fillna(0)
-    df.to_sql('price_bitmex',con=conn,if_exists='append',index=False)
+    #df.to_sql('price_bitmex',con=conn,if_exists='append',index=False)
     if(start_ts > datetime.now()):
         break
     print('start:%s\tcounter:%d' %(start_ts,counter))
