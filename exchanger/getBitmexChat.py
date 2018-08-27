@@ -1,30 +1,49 @@
-# -*- codeing:utf-8 -*-
-import bitmex,time,pymysql,time
+# -*- coding:utf-8 -*-
+import requests, time, pymysql
 import pandas as pd
 from datetime import datetime,timedelta
 
-# launch a bitmex client
-client = bitmex.bitmex(test=False,api_key='8L8g1w_JwrhgAHNhBpCNYMgH',api_secret='Gx1wdq7ZZXxyIENfhVCwxZpizgbAlan8OC3OIj7ed5WUIfqW')
+# Launch a bitmex connection
+def get_response(url,paras,proxies):
+    r = requests.get(url=url,params=paras,proxies=proxy)
+    df = pd.DataFrame(r.json())
+    return(df)
 
-# connect to mysql
+# Connect to mysql
 conn = pymysql.connect(host='127.0.0.1',user='root',passwd='qwer1234',db='prichat',charset='utf8mb4')
 cur = conn.cursor()
+cur.execute("SELECT max(content_id) FROM chat_logs where group_name='bitmex'")
+latest_start = cur.fetchall()[0][0]
 
-# get data per second and store in to mysql
-start_id = 1
+# Parameters
+proxy = {'https':'socks5h://127.0.0.1:1080'}
+url = "https://www.bitmex.com/api/v1/chat"
+paras = {
+        'count':500,
+        'channelID':2,
+        'start':latest_start+1,
+        'test':False}
+        #'start':304825
+#url = "https://www.bitmex.com/api/v1/chat?count=500&channelID=2&start=304825&test=False"
+
 while(1):
-    t=client.Chat.Chat_get(count=500,start=start_id,channelID=2).result()
-    df=pd.DataFrame(t[0])
-    df['create_time'] = df['date'].apply(lambda x: pd.to_datetime(str(x)))
-    df['create_time'] = df['create_time'].dt.strftime('%Y-%m-%d %H:%M:%S')
-    df = df.fillna(0)
+    df = get_response(url,paras,proxy)
+    if(len(df)==0):
+        break
+    df['time'] = pd.to_datetime(df['date'])
+    #df['time'] = df.time.dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai')
+    df['time'] = df['time'].dt.strftime('%Y-%m-%d %H:%M:%S')
     df['group_name'] = 'Bitmex'
+    df['group_type'] = 'Exchanger'
+    df = df.fillna(0)
     
-    cur.executemany('INSERT IGNORE INTO chat_logs(create_time,content,group_name,nickname,mark) VALUES(%s,%s,%s,%s,%s)',df[['create_time','message','group_name','user','id']].values.tolist())
+    cur.executemany('INSERT IGNORE INTO chat_logs(time,content,group_name,user,content_id,group_type) VALUES(%s,%s,%s,%s,%s,%s)',df[['time','message','group_name','user','id','group_type']].values.tolist())
     conn.commit()
-    start_id = max(df['id'])+1
-    print('start:%s\tcounter:%d' %(df['create_time'][0],start_id))
-    time.sleep(1)
 
+    paras['start'] = max(df['id'])+1
+    print('start_time_utc:%s\tcounter:%d\ttime_local:%s' %(df['time'][0],paras['start'],datetime.now()))
+    time.sleep(2)
+ 
 cur.close()
 conn.close()
+            

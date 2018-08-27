@@ -9,11 +9,11 @@ def get_response(url,paras,proxies):
     df = pd.DataFrame(r.json())
     return(df)
 
-if __name__ == '__main__':
+if __name__ = '__main__':
 # Connect to mysql
     conn = pymysql.connect(host='127.0.0.1',user='root',passwd='qwer1234',db='prichat',charset='utf8mb4')
     cur = conn.cursor()
-    cur.execute('SELECT max(timestamp) FROM bitmex_price')
+    cur.execute('SELECT max(timestamp) FROM price_bitmex')
     latest_ts = cur.fetchall()[0][0]
 
 # Parameters
@@ -37,7 +37,7 @@ if __name__ == '__main__':
         df['timestamp'] = df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
         df = df.fillna(0)
 
-        cur.executemany('INSERT IGNORE INTO bitmex_price(close,foreignNotional,high,homeNotional,lastSize,low,open,symbol,timestamp,trades,turnover,volume,vwap) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',df.values.tolist())
+        cur.executemany('INSERT IGNORE INTO price_bitmex(close,foreignNotional,high,homeNotional,lastSize,low,open,symbol,timestamp,trades,turnover,volume,vwap) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',df.values.tolist())
         conn.commit()
 
         print('start_time_utc:%s\ttime_local:%s' %(paras['startTime'],datetime.now()))
