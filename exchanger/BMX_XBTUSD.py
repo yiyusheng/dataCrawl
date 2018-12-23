@@ -13,7 +13,7 @@ if __name__ == '__main__':
 # Connect to mysql
     conn = pymysql.connect(host='127.0.0.1',user='root',passwd='qwer1234',db='prichat',charset='utf8mb4')
     cur = conn.cursor()
-    cur.execute('SELECT max(timestamp) FROM bitmex_price')
+    cur.execute("SELECT max(timestamp) FROM bitmex_price where symbol='XBTUSD'")
     latest_ts = cur.fetchall()[0][0]
 
 # Parameters
