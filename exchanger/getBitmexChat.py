@@ -16,7 +16,7 @@ cur.execute("SELECT max(content_id) FROM chat_logs where group_name='bitmex'")
 latest_start = cur.fetchall()[0][0]
 
 # Parameters
-proxy = {'https':'socks5h://127.0.0.1:1080'}
+proxy = {'https':'socks5h://127.0.0.1:10800'}
 url = "https://www.bitmex.com/api/v1/chat"
 paras = {
         'count':500,
