@@ -2,22 +2,16 @@
 import requests, time, pymysql
 import pandas as pd
 from datetime import datetime,timedelta
-
-# Launch a bitmex connection
-def get_response(url,paras,proxies):
-    r = requests.get(url=url,params=paras,proxies=proxy)
-    df = pd.DataFrame(r.json())
-    return(df)
+from connect import get_response,get_conn
 
 if __name__ == '__main__':
 # Connect to mysql
-    conn = pymysql.connect(host='127.0.0.1',user='root',passwd='qwer1234',db='prichat',charset='utf8mb4')
+    conn = get_conn()
     cur = conn.cursor()
     cur.execute("SELECT max(timestamp) FROM bitmex_price where symbol='ETHUSD'")
     latest_ts = cur.fetchall()[0][0]
 
 # Parameters
-    proxy = {'https':'socks5h://127.0.0.1:10800'}
     url = "https://www.bitmex.com/api/v1/trade/bucketed"
     paras = {
             'test':False,
@@ -30,7 +24,7 @@ if __name__ == '__main__':
             }
 
     while(1):
-        df = get_response(url,paras,proxy)
+        df = get_response(url,paras)
         if len(df)==0:
             break
         df['timestamp'] = pd.to_datetime(df['timestamp'])

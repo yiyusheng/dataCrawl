@@ -2,21 +2,15 @@
 import requests, time, pymysql
 import pandas as pd
 from datetime import datetime,timedelta
-
-# Launch a bitmex connection
-def get_response(url,paras,proxies):
-    r = requests.get(url=url,params=paras,proxies=proxy)
-    df = pd.DataFrame(r.json())
-    return(df)
+from connect import get_response,get_conn
 
 # Connect to mysql
-conn = pymysql.connect(host='127.0.0.1',user='root',passwd='qwer1234',db='prichat',charset='utf8mb4')
+conn = get_conn()
 cur = conn.cursor()
 cur.execute("SELECT max(content_id) FROM chat_logs where group_name='bitmex'")
 latest_start = cur.fetchall()[0][0]
 
 # Parameters
-proxy = {'https':'socks5h://127.0.0.1:10800'}
 url = "https://www.bitmex.com/api/v1/chat"
 paras = {
         'count':500,
@@ -27,7 +21,7 @@ paras = {
 #url = "https://www.bitmex.com/api/v1/chat?count=500&channelID=2&start=304825&test=False"
 
 while(1):
-    df = get_response(url,paras,proxy)
+    df = get_response(url,paras)
     if(len(df)==0):
         break
     df['time'] = pd.to_datetime(df['date'])
