@@ -29,6 +29,7 @@ if __name__ == '__main__':
             break
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         df['timestamp'] = df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
+        df['homeNotional'] = df['homeNotional'].round(5)
         df = df.fillna(0)
 
         cur.executemany('INSERT IGNORE INTO bitmex_price(close,foreignNotional,high,homeNotional,lastSize,low,open,symbol,timestamp,trades,turnover,volume,vwap) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',df.values.tolist())
